@@ -1,9 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "escalonador.h"
+#include <sys/types.h>
 
 #define TRUE 1
 #define FALSE 0
+
+
+#define fork() printf("fork;")
+#define execve() printf("execve")
+
 
 /*Esturturas declaradas e encapsuladas no modulo*/
 typedef struct _elemListaProcessos
@@ -58,7 +64,8 @@ static void executaFifo(pEscalonador pEscalonador);
 static void executaSJF(pEscalonador pEscalonador);
 static void executaPrioridade(pEscalonador pEscalonador);
 static void executaRoudRobin(pEscalonador pEscalonador);
-
+static pProcesso retiraFimLista(pListaProcessos pListaProcessos  );
+static pProcesso retiraProcessoMenorTempo(pListaProcessos pListaProcessos);
 
 
 pProcesso criaProcesso( int PID , int tempoUCP , int nivelPrioridade , int tempoES , int tempoExecucao,	int tempoEspera )
@@ -112,14 +119,20 @@ void executaEscalonamento(pEscalonador pEscalonador)
 	switch (pEscalonador->tipoEscalonamento)
 	{
 	case  SJF :
+		executaSJF(pEscalonador);
 		break;
 	case Prioridades :
+		executaPrioridade(pEscalonador);
 		break;
 	case Fifo :
+		executaFifo(pEscalonador);
 		break;
 	case RoudRobin:
+		executaFifo(pEscalonador);
 		break;
 	default:
+		printf("Politica errada. Programa sera finalizado.");
+		exit(1);
 		break;
 	}
 	return;
@@ -156,6 +169,100 @@ void insereInicioLista(pListaProcessos pListaProcessos , pProcesso pProcesso)
 	
 }
 
+pProcesso retiraFimLista(pListaProcessos pListaProcessos  )
+{
+	pProcesso processoRetirado = pListaProcessos->pElemFim->pProcesso ;
+	ElemListaProcessos * ultimoElemento = pListaProcessos->pElemFim ;
+	pListaProcessos->pElemFim = pListaProcessos->pElemFim->pAnt ;
+	pListaProcessos->pElemFim->pProx = NULL ;
+	ultimoElemento->pProcesso = NULL ;
+	free(ultimoElemento);
+	return processoRetirado ;
+}
 
 
+void executaFifo(pEscalonador pEscalonador)
+{
+	int stats ;
+	int qtdElementos = pEscalonador->pLsProcessos->qtdProcesso;
+	while (qtdElementos != 0)
+	{
+		pProcesso processo = retiraFimLista(pEscalonador->pLsProcessos);
+		if(fork() != 0)
+		{
+			//waitpid(-1 , &stats , 0);
+		}
+		else
+		{
+			execve();
+		}
 
+	}
+}
+
+void executaSJF(pEscalonador pEscalonador)
+{
+	int stats ;
+	int qtdProcessos = pEscalonador->pLsProcessos->qtdProcesso ;
+	while (qtdProcessos != 0)
+	{
+		pProcesso processAtual = retiraProcessoMenorTempo(pEscalonador->pLsProcessos);
+		if (fork() != 0)
+		{
+			//waitpid(-1,&stats,0);
+		}
+		else
+		{
+			execve();
+		}
+	}
+	return ;
+}
+void executaPrioridade(pEscalonador pEscalonador)
+{
+	return ;
+}
+void executaRoudRobin(pEscalonador pEscalonador)
+{
+	return ;
+}
+
+
+pProcesso retiraProcessoMenorTempo(pListaProcessos pListaProcessos)
+{
+	ElemListaProcessos * pElemIteracao = pListaProcessos->pElemInicio;
+	int menorTempo = pListaProcessos->pElemInicio->pProcesso->tempoExecucao ;
+	pProcesso processoRet = NULL ;
+	
+	// desfaz ligacao das pontas da lista
+	pListaProcessos->pElemInicio->pAnt = NULL ;
+	pListaProcessos->pElemFim->pProx = NULL ;
+
+	//Procura Menor Tempo
+	while (pElemIteracao != NULL )
+	{
+		if(pElemIteracao->pProcesso->tempoExecucao > pElemIteracao->pProx->pProcesso->tempoExecucao )
+		{
+			pElemIteracao = pElemIteracao->pProx ;
+		}
+	}
+	//Retira da Lista
+	if(pElemIteracao != NULL)
+	{
+		ElemListaProcessos * pTempAnt = pElemIteracao->pAnt ;
+		ElemListaProcessos * pTempProx = pElemIteracao->pProx ;
+		
+
+		pTempAnt->pProx = pTempProx ;
+		pTempProx->pAnt = pTempAnt ;
+
+		pElemIteracao->pAnt = NULL ;
+		pElemIteracao->pProx = NULL ;
+		processoRet = pElemIteracao->pProcesso ;
+		pElemIteracao->pProcesso = NULL ;
+		free(pElemIteracao);
+		pListaProcessos->qtdProcesso --;
+	}
+
+	return processoRet ;
+}
