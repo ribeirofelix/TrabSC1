@@ -66,7 +66,7 @@ static void executaPrioridade(pEscalonador pEscalonador);
 static void executaRoudRobin(pEscalonador pEscalonador);
 static pProcesso retiraFimLista(pListaProcessos pListaProcessos  );
 static pProcesso retiraProcessoMenorTempo(pListaProcessos pListaProcessos);
-
+static pProcesso retiraProcessoMaiorPrioridade(pListaProcessos pListaProcessos);
 
 pProcesso criaProcesso( int PID , int tempoUCP , int nivelPrioridade , int tempoES , int tempoExecucao,	int tempoEspera )
 {
@@ -228,6 +228,44 @@ void executaRoudRobin(pEscalonador pEscalonador)
 }
 
 
+pProcesso retiraProcessoMaiorPrioridade(pListaProcessos pListaProcessos)
+{
+	ElemListaProcessos * pElemIteracao = pListaProcessos->pElemInicio;
+	int menorTempo = pElemIteracao->pProcesso->nivelPrioridade ;
+	pProcesso processoRet = NULL ;
+	
+	// desfaz ligacao das pontas da lista
+	pListaProcessos->pElemInicio->pAnt = NULL ;
+	pListaProcessos->pElemFim->pProx = NULL ;
+
+	//Procura Mais prioritario
+	while (pElemIteracao != NULL )
+	{
+		if(pElemIteracao->pProcesso->nivelPrioridade > pElemIteracao->pProx->pProcesso->nivelPrioridade )
+		{
+			pElemIteracao = pElemIteracao->pProx ;
+		}
+	}
+	//Retira da Lista
+	if(pElemIteracao != NULL)
+	{
+		ElemListaProcessos * pTempAnt = pElemIteracao->pAnt ;
+		ElemListaProcessos * pTempProx = pElemIteracao->pProx ;
+		
+
+		pTempAnt->pProx = pTempProx ;
+		pTempProx->pAnt = pTempAnt ;
+
+		pElemIteracao->pAnt = NULL ;
+		pElemIteracao->pProx = NULL ;
+		processoRet = pElemIteracao->pProcesso ;
+		pElemIteracao->pProcesso = NULL ;
+		free(pElemIteracao);
+		pListaProcessos->qtdProcesso --;
+	}
+
+	return processoRet ;
+}
 pProcesso retiraProcessoMenorTempo(pListaProcessos pListaProcessos)
 {
 	ElemListaProcessos * pElemIteracao = pListaProcessos->pElemInicio;
