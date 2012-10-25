@@ -77,9 +77,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="escalonador.h" />
     <ClInclude Include="interpretador.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="escalonador.c" />
     <ClCompile Include="intepretador.c" />
     <ClCompile Include="main.c" />
   </ItemGroup>

@@ -2,28 +2,29 @@
 #include <stdlib.h>
 
 #include "interpretador.h"
-
+#include "escalonador.h"
 int main(){
 	
-	pProcesso pprocesso;
-	pLeitor leitor;
-	FILE * arquivo;
-
-	puts("Cria leitor e inicializa");
-	leitor = criarLeitor();
-	inicializaLeitor(leitor);
-	printf("%d %d\n",getComandoAtual(leitor),getQtdComando(leitor) );
-	if (getProcessos(leitor) == NULL)
-		puts("NULL\n");
-
-	puts("Cria processo e testa");
-	pprocesso = criarProcesso();
-	inicializaProcesso(pprocesso);
-	printf("%d\n",getPID(pprocesso));
+	pLeitor leitor = criarLeitor();
+	pEscalonador pEscalonadorFifo = criaEscalonador( Fifo,0);
+	pEscalonador pEscalonadorSJF = criaEscalonador(SJF,0);
+	pEscalonador pEscalonadorPriopridades = criaEscalonador(Prioridades,0);
+	pEscalonador pEscalonadorRoundRobin = criaEscalonador(RoudRobin,0);
+	char * comando ;
 	
-	/* implementar SJF*/
-	/* prioridade */
-	/* fifo */
-	/* roundbatman */
+	FILE * entrada = fopen("E:\\Documentos\\entrada.txt","rt");
+	FILE * saida = fopen("E:\\Documento\\saida.txt","rt" );
+
+	preencheCommandos(entrada , leitor);
+	
+
+	while ( (comando = interarComando(leitor) ) != NULL )
+	{
+		pProcesso pProcessoAtual = criaProcesso(0,0,0,0,0,0);
+		insereProcesso(pEscalonadorFifo,pProcessoAtual);
+	}
+
+	executaEscalonamento(pEscalonadorFifo);
+	
 	return 0;
 }

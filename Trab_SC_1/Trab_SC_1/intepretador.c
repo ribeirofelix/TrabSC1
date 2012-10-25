@@ -3,10 +3,14 @@
 #include <string.h>
 #include "interpretador.h"
 
+#include "escalonador.h"
+
+
 /* Prototipos de funções encapsuladas no modulo*/
 static int contaNumeroLinhasDoArquivo (FILE* file);
 static char * pegaNomeDoProcesso (char* string);
 static void adicionaProcessoNaLista (pLeitor pleitor, pProcesso pprocesso);
+
 
 typedef struct _processo{
 	char* nome;
@@ -168,29 +172,24 @@ void preencheCommandos (FILE * file, pLeitor pleitor, char * nomeDoArquivo)
 	}
 }
 
-char* interarComando (pLeitor pleitor)
+pProcesso interarComando (pLeitor pleitor)
 {
+	int i;
+	pProcesso aux;
+
 	pleitor->comandoAtual++;
 
 	if (pleitor->comandoAtual > pleitor->qtdComandos)
 		return NULL;
 
-	return pleitor->vetComandos[pleitor->comandoAtual - 1];
+	for (aux = pleitor->lisProcesso, i = 0; i < pleitor->comandoAtual;  aux = aux->proximo, i++);
+
+	return aux;
 }
 
 int getQtdComando(pLeitor pleitor)
 {
 	return pleitor->qtdComandos;
-}
-
-void imprimirListaProcessos (pLeitor pleitor)
-{
-	pProcesso aux;
-
-	for (aux = pleitor->lisProcesso; aux != NULL; aux= aux->proximo)
-	{
-		printf ("Nome: %s \n PID: %d \n", aux->nome, aux->PID);
-	}
 }
 
 static int contaNumeroLinhasDoArquivo (FILE* file)

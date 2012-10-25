@@ -19,4 +19,4 @@ int getQtdComando(pLeitor pleitor);
 
 void preencheCommandos (FILE * file, pLeitor pLeitor);
 
-char* interarComando (pLeitor pleitor);
+pProcesso interarComando (pLeitor pleitor);
