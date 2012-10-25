@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "interpretador.h"
-
+#include "escalonador.h"
 typedef struct _processo{
 	char* nome;
 	int PID;
