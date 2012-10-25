@@ -6,15 +6,27 @@
 int main(){
 
 	pLeitor leitor = criarLeitor();
+	pEscalonador pEscalonadorFifo = criaEscalonador( Fifo,0);
+	pEscalonador pEscalonadorSJF = criaEscalonador(SJF,0);
+	pEscalonador pEscalonadorPriopridades = criaEscalonador(Prioridades,0);
+	pEscalonador pEscalonadorRoundRobin = criaEscalonador(RoudRobin,0);
+	char * comando ;
 	
 	FILE * entrada = fopen("E:\\Documentos\\entrada.txt","rt");
-	char texto[100] ;
-	inicializaLeitor(leitor);
-	while (fscanf(entrada,"exec %s",texto) != EOF  )
-	{
+	FILE * saida = fopen("E:\\Documento\\saida.txt","rt" );
 
-		printf("%s",texto);
+	preencheCommandos(entrada , leitor);
+	
+
+	while ( (comando = interarComando(leitor) ) != NULL )
+	{
+		pProcesso pProcessoAtual = criaProcesso(0,0,0,0,0,0);
+		insereProcesso(pEscalonadorFifo,pProcessoAtual);
 	}
-	printf("%d %d",getComandoAtual(leitor),getQtdComando(leitor) );
-	return 0;
+
+	executaEscalonamento(pEscalonadorFifo);
+	
+
+
+
 }
