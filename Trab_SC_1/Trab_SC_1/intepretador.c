@@ -83,6 +83,11 @@ char * getComandoN (pLeitor pleitor, int n)
 	return pleitor->vetComandos[n];
 }
 
+pProcesso getProcessos (pLeitor pleitor)
+{
+	return pleitor->lisProcesso;
+}
+
 //assumo que o leitor está criado e inicializado e o arquivo não é null e que o file é igual ao nome do arquivo
 void preencheCommandos (FILE * file, pLeitor pleitor, char * nomeDoArquivo)
 {
@@ -151,13 +156,6 @@ void preencheCommandos (FILE * file, pLeitor pleitor, char * nomeDoArquivo)
 
 					strcpy(pprocesso->nome, nomeDoProcesso);
 					pprocesso->PID = linhaAtual;
-
-					// ultima linha, ultimo processo
-					if (strcmp (nomeDoArquivo, "RoudRobin_comandos.txt") == 0 
-						&& numeroLinhas == linhaAtual)
-					{
-						pprocesso->proximo = pleitor->lisProcesso;
-					}
 				}
 
 				// salva o processo no vetor do leitor
@@ -183,6 +181,16 @@ char* interarComando (pLeitor pleitor)
 int getQtdComando(pLeitor pleitor)
 {
 	return pleitor->qtdComandos;
+}
+
+void imprimirListaProcessos (pLeitor pleitor)
+{
+	pProcesso aux;
+
+	for (aux = pleitor->lisProcesso; aux != NULL; aux= aux->proximo)
+	{
+		printf ("Nome: %s \n PID: %d \n", aux->nome, aux->PID);
+	}
 }
 
 static int contaNumeroLinhasDoArquivo (FILE* file)
@@ -234,5 +242,3 @@ static void adicionaProcessoNaLista (pLeitor pleitor, pProcesso pprocesso)
 		aux = aux->proximo;
 	}
 }
-
-/*imprimir lista*/

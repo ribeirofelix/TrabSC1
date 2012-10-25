@@ -1,0 +1,5 @@
+exec charlie
+exec delta
+exec echo
+exec alfa
+exec beta

@@ -1,0 +1,5 @@
+exec alfa tempoexec=1000
+exec beta tempoexec=7000
+exec charlie tempoexec=7000
+exec delta tempoexec=3000
+exec echo temposexec=2000
