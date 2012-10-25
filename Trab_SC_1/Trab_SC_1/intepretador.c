@@ -3,6 +3,11 @@
 #include <string.h>
 #include "interpretador.h"
 
+/* Prototipos de funções encapsuladas no modulo*/
+static int contaNumeroLinhasDoArquivo (FILE* file);
+static char * pegaNomeDoProcesso (char* string);
+static void adicionaProcessoNaLista (pLeitor pleitor, pProcesso pprocesso);
+
 typedef struct _processo{
 	char* nome;
 	int PID;
@@ -11,14 +16,26 @@ typedef struct _processo{
 	int tempoEs;
 	int tempoExecucao;
 	int tempoEspera;
+	pProcesso proximo;
 } Processo;
 
 typedef struct _leitor{
 	int qtdComandos;
 	char** vetComandos;
 	int comandoAtual;
-	pProcesso* vetProcesso ;
+	pProcesso lisProcesso;
+	pProcesso proximoProcesso;
 } Leitor;
+
+
+pProcesso criarProcesso ()
+{
+	pProcesso processoRet = (pProcesso) malloc(sizeof(Processo));
+	if(processoRet != NULL)
+		return processoRet;
+
+	return NULL;
+}
 
 pLeitor criarLeitor()
 {
@@ -29,13 +46,31 @@ pLeitor criarLeitor()
 	return NULL;
 }
 
+void inicializaProcesso (pProcesso processo)
+{
+	processo->nome;
+	processo->nivelPrioridade = 0;
+	processo->PID = 0;
+	processo->tempoUCP = 0;
+	processo->tempoEs = 0;
+	processo->tempoExecucao = 0;
+	processo->tempoEspera = 0;
+	processo->proximo = NULL;
+}
+
 void inicializaLeitor(pLeitor pLeitor)
 {
 	pLeitor->qtdComandos = 0;
 	pLeitor->vetComandos = NULL;
 	pLeitor->comandoAtual = 0 ;
-	pLeitor->vetProcesso = NULL;
+	pLeitor->lisProcesso = NULL;
+	pLeitor->proximoProcesso = NULL;
 	return;
+}
+
+int getPID(pProcesso processo)
+{
+	return processo->PID;
 }
 
 int getComandoAtual(pLeitor pleitor)
@@ -48,19 +83,8 @@ char * getComandoN (pLeitor pleitor, int n)
 	return pleitor->vetComandos[n];
 }
 
-pProcesso inicializaProcesso (pProcesso processo)
-{
-	processo->nome;
-	processo->nivelPrioridade = 0;
-	processo->PID = 0;
-	processo->tempoUCP = 0;
-	processo->tempoEs = 0;
-	processo->tempoExecucao = 0;
-	processo->tempoEspera = 0;
-}
-
 //assumo que o leitor está criado e inicializado e o arquivo não é null e que o file é igual ao nome do arquivo
-int preencheCommandos (FILE * file, pLeitor pleitor, char * nomeDoArquivo)
+void preencheCommandos (FILE * file, pLeitor pleitor, char * nomeDoArquivo)
 {
 	int numeroLinhas;
 	int linhaAtual = 0;
@@ -69,52 +93,81 @@ int preencheCommandos (FILE * file, pLeitor pleitor, char * nomeDoArquivo)
 	numeroLinhas = contaNumeroLinhasDoArquivo(file);
 	pleitor->vetComandos = (char **) malloc ( numeroLinhas*sizeof(char*));
 	if (pleitor->vetComandos == NULL)
-		return 0;
-
-	pleitor->vetProcesso = (Processo**) malloc (numeroLinhas*sizeof (Processo*));
-	if (pleitor->vetProcesso == NULL)
-		return 0;
+	{
+		puts("Erro na alocação de memoria");
+		return;
+	}
 
 	while( fscanf(file,"%[^\n]",linhaDeComando) != EOF)
 	{
 		pProcesso pprocesso;
-		pprocesso = (pProcesso) malloc (sizeof(pProcesso));
-		if (pprocesso == NULL)
-			return 0;
+		pprocesso = criarProcesso();
 
 		pleitor->vetComandos[pleitor->qtdComandos] = (char *) malloc (strlen(linhaDeComando)*sizeof(char));
 		if (pleitor->vetComandos[pleitor->qtdComandos] == NULL)
-			return 0;
-		
-		if ( strcmp (nomeDoArquivo, "SJF_comandos.txt")){
-			
+		{
+			puts("Erro na alocação de memoria");
+			return;
 		}
-		else if ( strcmp (nomeDoArquivo, "Prioridades_comandos.txt ")){
-			char strAux[2];
-			
-			// preencher a estrutura do processo
-			strAux[0] = linhaDeComando[strlen(linhaDeComando)-1]; strAux[1] = '\0';
-			pprocesso->nivelPrioridade = strtol( strAux, NULL, 10);
+
+		// caso seja SJF
+		if ( strcmp (nomeDoArquivo, "SJF_comandos.txt")){
+			int idxIgual, tamanhoMili;
+			char * pIgual;
+			char * strAux;
+
+			// preenche a estrutura do processo
+			pIgual = strchr (linhaDeComando, '=');
+			idxIgual = pIgual-linhaDeComando+1;
+			tamanhoMili = strlen(linhaDeComando)-idxIgual;
+
+			// strAux aponta para o começo da string de milisegundos
+			strAux = &linhaDeComando[idxIgual+1];
+
+			pprocesso->tempoUCP = strtol( strAux, NULL, 10);
 			strcpy(pprocesso->nome, pegaNomeDoProcesso(linhaDeComando));
 			pprocesso->PID = linhaAtual;
- 		}
-		else if ( strcmp (nomeDoArquivo, "FIFO_comandos.txt")){
 
 		}
-		else if ( strcmp (nomeDoArquivo, "RoudRobin_comandos.txt")){
+		else // Caso seja prioridade
+			if ( strcmp (nomeDoArquivo, "Prioridades_comandos.txt ") == 0)
+			{
+				char * pIgual;
+				int idxIgual;
 
-		}
+				// preenche a estrutura do processo
+				pIgual = strchr (linhaDeComando, '=');
+				idxIgual = pIgual-linhaDeComando+1;
+				pprocesso->nivelPrioridade = atoi(&linhaDeComando[idxIgual+1]);
+				strcpy(pprocesso->nome, pegaNomeDoProcesso(linhaDeComando));
+				pprocesso->PID = linhaAtual;
 
-		// salva o processo no vetord
-		pleitor->vetProcesso[linhaAtual] = pprocesso;
-		
-		strcpy(pleitor->vetComandos[pleitor->qtdComandos],linhaDeComando);
-		pleitor->qtdComandos++;
-	
-		linhaAtual++;
+			}
+			else // caso seja fifo ou roudrobin
+				if ( strcmp (nomeDoArquivo, "FIFO_comandos.txt") == 0 || 
+					strcmp (nomeDoArquivo, "RoudRobin_comandos.txt") == 0)
+				{
+					char * nomeDoProcesso = &linhaDeComando[5];
+
+					strcpy(pprocesso->nome, nomeDoProcesso);
+					pprocesso->PID = linhaAtual;
+
+					// ultima linha, ultimo processo
+					if (strcmp (nomeDoArquivo, "RoudRobin_comandos.txt") == 0 
+						&& numeroLinhas == linhaAtual)
+					{
+						pprocesso->proximo = pleitor->lisProcesso;
+					}
+				}
+
+				// salva o processo no vetor do leitor
+				adicionaProcessoNaLista(pleitor, pprocesso);
+
+				strcpy(pleitor->vetComandos[pleitor->qtdComandos],linhaDeComando);
+				pleitor->qtdComandos++;
+
+				linhaAtual++;
 	}
-
-	return 1;
 }
 
 char* interarComando (pLeitor pleitor)
@@ -167,3 +220,19 @@ static char * pegaNomeDoProcesso (char* string)
 
 	return resultado;
 }
+
+static void adicionaProcessoNaLista (pLeitor pleitor, pProcesso pprocesso)
+{
+	pProcesso aux = pleitor->lisProcesso;
+	while (aux != NULL)
+	{
+		if (aux->proximo == NULL)
+		{
+			aux->proximo = pprocesso;
+			break;
+		}
+		aux = aux->proximo;
+	}
+}
+
+/*imprimir lista*/
