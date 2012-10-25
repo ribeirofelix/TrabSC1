@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 #include "interpretador.h"
-
+#include "escalonador.h"
 int main(){
 
 	pLeitor leitor = criarLeitor();
