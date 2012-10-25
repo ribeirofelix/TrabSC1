@@ -18,12 +18,18 @@
     <ClInclude Include="interpretador.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="escalonador.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="intepretador.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="main.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="escalonador.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
