@@ -28,4 +28,4 @@ int getQtdComando(pLeitor pleitor);
 
 void preencheCommandos (FILE * file, pLeitor pLeitor, char* nomeArquivo);
 
-pProcesso interarComando (pLeitor pleitor);
+pProcesso iterarComando (pLeitor pleitor);

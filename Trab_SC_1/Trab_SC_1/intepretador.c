@@ -6,7 +6,6 @@
 #include "escalonador.h"
 
 /* Prototipos de funções encapsuladas no modulo*/
-static int contaNumeroLinhasDoArquivo (FILE* file);
 static char * pegaNomeDoProcesso (char* string);
 static void adicionaProcessoNaLista (pLeitor pleitor, pProcesso pprocesso);
 static void retiraProcessoDaLista (pLeitor pleitor, pProcesso processo);
@@ -38,7 +37,6 @@ pLeitor criarLeitor()
 		return leitorRet;
 	}
 		
-
 	return NULL;
 }
 
@@ -87,20 +85,18 @@ pProcesso getProcessos (pLeitor pleitor)
 //assumo que o leitor está criado e inicializado e o arquivo não é null e que o file é igual ao nome do arquivo
 void preencheCommandos (FILE * file, pLeitor pleitor, char * nomeDoArquivo)
 {
+	pProcesso pprocesso;
 	int numeroLinhas = 0;
 	int linhaAtual = 0;
 	char * nomeDoProcesso;
 	char linhaDeComando[50];
 
-//	int numeroLinhas = 0;
-
+	// conta o numero de linhas.
 	while ( fscanf(file,"\n%[^\n]") != EOF)
 		numeroLinhas++;
 
 	fclose(file);
 
-	
-	//numeroLinhas = contaNumeroLinhasDoArquivo(file);
 	pleitor->vetComandos = (char **) malloc ( numeroLinhas*sizeof(char*));
 	if (pleitor->vetComandos == NULL)
 	{
@@ -111,7 +107,7 @@ void preencheCommandos (FILE * file, pLeitor pleitor, char * nomeDoArquivo)
 	file = fopen (nomeDoArquivo, "rt");
 	while ( fscanf(file,"\n%[^\n]", linhaDeComando) != EOF)
 	{
-		pProcesso pprocesso;
+		
 		pprocesso = criarProcesso();
 		inicializaProcesso(pprocesso);
 
@@ -150,7 +146,7 @@ void preencheCommandos (FILE * file, pLeitor pleitor, char * nomeDoArquivo)
 
 		}
 		else // Caso seja prioridade
-			if ( strcmp (nomeDoArquivo, "Prioridades_comandos.txt ") == 0)
+			if ( strcmp (nomeDoArquivo, "Prioridades_comandos.txt") == 0)
 			{
 				char * pIgual;
 				int idxIgual;
@@ -158,7 +154,7 @@ void preencheCommandos (FILE * file, pLeitor pleitor, char * nomeDoArquivo)
 				// preenche a estrutura do processo
 				pIgual = strchr (linhaDeComando, '=');
 				idxIgual = pIgual-linhaDeComando+1;
-				pprocesso->nivelPrioridade = atoi(&linhaDeComando[idxIgual+1]);
+				pprocesso->nivelPrioridade = atoi(&linhaDeComando[idxIgual]);
 
 
 				nomeDoProcesso = pegaNomeDoProcesso(linhaDeComando);
@@ -200,7 +196,7 @@ void preencheCommandos (FILE * file, pLeitor pleitor, char * nomeDoArquivo)
 	}
 }
 
-pProcesso interarComando (pLeitor pleitor)
+pProcesso iterarComando (pLeitor pleitor)
 {
 	int i;
 	pProcesso aux;
@@ -239,17 +235,6 @@ int getQtdComando(pLeitor pleitor)
 	pleitor->lisProcesso = aux->proximo;
 	aux->proximo = NULL;
 
-}
-
- int contaNumeroLinhasDoArquivo (FILE* file)
-{
-	int numeroLinhas = 0;
-	while ( fscanf(file,"\n%[^\n]") != EOF)
-		numeroLinhas++;
-
-	fclose(file);
-
-	return numeroLinhas;
 }
 
  char * pegaNomeDoProcesso (char* string)
