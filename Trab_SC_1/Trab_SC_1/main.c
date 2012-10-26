@@ -17,7 +17,9 @@ int main(){
 	int comando = 5 ;
 	//printf("oi1");
 
-	FILE * entradaFifo = fopen("FIFO_comandos.txt","rt");
+	FILE * entradaFifo = fopen("E:\\FIFO_comandos.txt","r");
+	if(entradaFifo == NULL)
+		exit(1);
 	/*FILE * entradaSJF = fopen("SJF_comandos.txt","rt");
 	FILE * entradaPrioridades = fopen("Prioridades_comandos.txt","rt");
 	FILE * entradaRoudRobin = fopen("RoudRobin_comandos.txt","rt");
