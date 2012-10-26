@@ -1,22 +1,47 @@
 #include <stdio.h>
 #include <stdlib.h>
-
-//#include "interpretador.h"
+#include "interpretador.h"
 #include "escalonador.h"
 int main(){
 	
-	//pLeitor leitor = criarLeitor();
+	pLeitor leitorFifo = criarLeitor();
+	pLeitor leitorSJF = criarLeitor();
+	pLeitor leitorPrioridades = criarLeitor();
+	pLeitor leitorRoudRobin = criarLeitor();
 	pEscalonador pEscalonadorFifo = criaEscalonador( Fifo,0);
 	pEscalonador pEscalonadorSJF = criaEscalonador(SJF,0);
 	pEscalonador pEscalonadorPriopridades = criaEscalonador(Prioridades,0);
 	pEscalonador pEscalonadorRoundRobin = criaEscalonador(RoudRobin,0);
 	pProcesso pProcessoAInserir  ;
 	int comando = 5 ;
-	FILE * entrada = fopen("E:\\Documentos\\entrada.txt","rt");
+
+
+	FILE * entradaFifo = fopen("FIFO_comandos.txt","rt");
+	FILE * entradaSJF = fopen("SJF_comandos.txt","rt");
+	FILE * entradaPrioridades = fopen("Prioridades_comandos.txt","rt");
+	FILE * entradaRoudRobin = fopen("RoudRobin_comandos.txt","rt");
 	FILE * saida = fopen("E:\\Documento\\saida.txt","rt" );
 
-//	preencheCommandos(entrada , leitor);
+	preencheCommandos(entradaFifo,leitorFifo,"FIFO_comandos.txt");
+	preencheCommandos(entradaSJF,leitorSJF,"SJF_comandos.txt");
+	preencheCommandos(entradaPrioridades,leitorPrioridades,"Prioridades_comandos.txt");
+	preencheCommandos(entradaRoudRobin,leitorRoudRobin,"RoudRobin_comandos.txt");
 	
+
+	// Itera  sobre cada um dos leitores e depois executa os comandos.
+
+	//FIFO
+	
+
+	//SJF
+
+	//Prioridades
+
+	//Round Robin
+
+
+
+
 
 	/*while ( (pProcessoAInserir = interarComando(leitor) ) != NULL )
 	{

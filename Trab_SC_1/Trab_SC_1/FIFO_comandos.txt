@@ -1,5 +1,4 @@
-exec alfa
-exec beta
-exec charlie
-exec delta
-exec echo
+exec ls
+exec more
+exec ls
+exec cat
