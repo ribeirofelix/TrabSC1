@@ -7,8 +7,6 @@ void inicializaLeitor(pLeitor pLeitor);
 
 pProcesso getProcessos (pLeitor pleitor);
 
-pProcesso criarProcesso();
-
 void inicializaProcesso(pProcesso processo);
 
 int getPID(pProcesso processo);

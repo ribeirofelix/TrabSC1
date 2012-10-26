@@ -10,7 +10,7 @@
 static int contaNumeroLinhasDoArquivo (FILE* file);
 static char * pegaNomeDoProcesso (char* string);
 static void adicionaProcessoNaLista (pLeitor pleitor, pProcesso pprocesso);
-static int retiraProcessoDaLista (pLeitor pleitor, pProcesso processo);
+static void retiraProcessoDaLista (pLeitor pleitor, pProcesso processo);
 
 
 typedef struct _processo{
@@ -195,7 +195,7 @@ int getQtdComando(pLeitor pleitor)
 	return pleitor->qtdComandos;
 }
 
-static int retiraProcessoDaLista (pLeitor pleitor, pProcesso processo)
+static void retiraProcessoDaLista (pLeitor pleitor, pProcesso processo)
 {
 	pProcesso aux, anterior;
 	
