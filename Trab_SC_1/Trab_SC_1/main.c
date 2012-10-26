@@ -1,30 +1,65 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "interpretador.h"
+//#include "interpretador.h"
 #include "escalonador.h"
 int main(){
 	
-	pLeitor leitor = criarLeitor();
+	//pLeitor leitor = criarLeitor();
 	pEscalonador pEscalonadorFifo = criaEscalonador( Fifo,0);
 	pEscalonador pEscalonadorSJF = criaEscalonador(SJF,0);
 	pEscalonador pEscalonadorPriopridades = criaEscalonador(Prioridades,0);
 	pEscalonador pEscalonadorRoundRobin = criaEscalonador(RoudRobin,0);
-	char * comando ;
-	
+	pProcesso pProcessoAInserir  ;
+	int comando = 5 ;
 	FILE * entrada = fopen("E:\\Documentos\\entrada.txt","rt");
 	FILE * saida = fopen("E:\\Documento\\saida.txt","rt" );
 
-	preencheCommandos(entrada , leitor);
+//	preencheCommandos(entrada , leitor);
 	
 
-	while ( (comando = interarComando(leitor) ) != NULL )
+	/*while ( (pProcessoAInserir = interarComando(leitor) ) != NULL )
 	{
-		pProcesso pProcessoAtual = criaProcesso(0,0,0,0,0,0);
-		insereProcesso(pEscalonadorFifo,pProcessoAtual);
+		insereProcesso(pEscalonadorFifo,pProcessoAInserir);
+	}*/
+
+	while (comando != 0)
+	{
+		pProcesso pProcesso = NULL;
+		if(comando%2)
+			 pProcesso = criaProcesso(0,0,comando,0,comando,comando,"ls");
+		else
+			 pProcesso = criaProcesso(0,0,comando,0,comando,comando,"man");
+		insereProcesso(pEscalonadorFifo,pProcesso);
+		comando--;
+	}
+	comando = 5 ;
+	while (comando != 0)
+	{
+		pProcesso pProcesso = NULL;
+		if(comando%2)
+			 pProcesso = criaProcesso(0,0,comando,0,comando,comando,"ls");
+		else
+			 pProcesso = criaProcesso(0,0,comando,0,comando,comando,"man");
+		insereProcesso(pEscalonadorSJF,pProcesso);
+		comando--;
 	}
 
-	executaEscalonamento(pEscalonadorFifo);
+		comando = 5 ;
+	while (comando != 0)
+	{
+		pProcesso pProcesso = NULL;
+		if(comando%2)
+			 pProcesso = criaProcesso(0,0,comando,0,comando,comando,"ls");
+		else
+			 pProcesso = criaProcesso(0,0,comando,0,comando,comando,"man");
+		insereProcesso(pEscalonadorPriopridades,pProcesso);
+		comando--;
+	}
+
+
+
+	executaEscalonamento(pEscalonadorPriopridades);
 	
 	return 0;
 }

@@ -1,13 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include "escalonador.h"
 #include <sys/types.h>
-#include <sys/wait.h>
-#include <unistd.h>
-#include <sys/ipc.h> 
-#include <sys/shm.h> 
-#include <sys/stat.h>
 
 #define TRUE 1
 #define FALSE 0
@@ -53,7 +47,6 @@ typedef struct _escalonador
 
 typedef struct _processo
 {
-	char * nome ;
 	int PID ;
 	int tempoUCP ;
 	int nivelPrioridade ;
@@ -74,14 +67,8 @@ static void executaRoudRobin(pEscalonador pEscalonador);
 static pProcesso retiraFimLista(pListaProcessos pListaProcessos  );
 static pProcesso retiraProcessoMenorTempo(pListaProcessos pListaProcessos);
 static pProcesso retiraProcessoMaiorPrioridade(pListaProcessos pListaProcessos);
-static void OrdenaListaTempoDecrescente(pListaProcessos pLista);
-static void OrdenaListaMaiorPrioridade(pListaProcessos pLista);
 
-
-
-
-
-pProcesso criaProcesso( int PID , int tempoUCP , int nivelPrioridade , int tempoES , int tempoExecucao,	int tempoEspera , char * nome )
+pProcesso criaProcesso( int PID , int tempoUCP , int nivelPrioridade , int tempoES , int tempoExecucao,	int tempoEspera )
 {
 	pProcesso pNovoProcesso = (pProcesso) malloc(sizeof(Processo));
 	if(pNovoProcesso == NULL)
@@ -96,8 +83,6 @@ pProcesso criaProcesso( int PID , int tempoUCP , int nivelPrioridade , int tempo
 	pNovoProcesso->tempoES = tempoES;
 	pNovoProcesso->tempoExecucao = tempoExecucao;
 	pNovoProcesso->tempoEspera = tempoEspera;
-	pNovoProcesso->nome = (char *)  malloc(sizeof( strlen(nome) ) ) ;
-	strcpy(pNovoProcesso->nome,nome);
 
 	return pNovoProcesso;
 
@@ -106,8 +91,6 @@ pProcesso criaProcesso( int PID , int tempoUCP , int nivelPrioridade , int tempo
 
 pEscalonador criaEscalonador( enum TipoEscalonamento tpEscalonamento , int timeSlice )
 {
-
-
 	pEscalonador pNovoEscalonador = (pEscalonador) malloc(sizeof(Escalonador));
 	if(pNovoEscalonador == NULL)
 	{
@@ -157,10 +140,7 @@ void executaEscalonamento(pEscalonador pEscalonador)
 
 void inicializaLista(pEscalonador pEscalonador)
 {
-	int segmento;
-	segmento= shmget(IPC_PRIVATE,sizeof(struct _lsProcessos), IPC_CREAT|IPC_EXCL|S_IRUSR|S_IWUSR);	 
-	pEscalonador->pLsProcessos =(struct _lsProcessos*) shmat(segmento,0,0);
-	//pEscalonador->pLsProcessos = (struct _lsProcessos *) malloc(sizeof(struct _lsProcessos)) ;
+	pEscalonador->pLsProcessos = (pListaProcessos) malloc(sizeof(struct _lsProcessos ) );
 	pEscalonador->pLsProcessos->pElemCorr = NULL ;
 	pEscalonador->pLsProcessos->pElemFim = NULL ;
 	pEscalonador->pLsProcessos->pElemInicio = NULL ;
@@ -220,35 +200,17 @@ pProcesso retiraFimLista(pListaProcessos pListaProcessos  )
 void executaFifo(pEscalonador pEscalonador)
 {
 	int stats ;
-	int qtdProcessos = pEscalonador->pLsProcessos->qtdProcesso ;
-	while (pEscalonador->pLsProcessos->qtdProcesso!= 0)
+	
+	while (pEscalonador->pLsProcessos->qtdProcesso != 0)
 	{
-		
-		pid_t pId ;
-		printf("before fork\n");
-		if((pId = fork() )!= 0)
+		pProcesso processo = retiraFimLista(pEscalonador->pLsProcessos);
+		if(fork() != 0)
 		{
-			int w ;
-			printf("before wait\n");
-			printf("PID: %d\n",pId);
-			
-			w = waitpid(pId, &stats , 0);
-			
-			printf("after wait %d\n",w);
+			//waitpid(-1 , &stats , 0);
 		}
 		else
 		{
-			pProcesso processo = retiraFimLista(pEscalonador->pLsProcessos);
-			char *cmd[] = { processo->nome , (char *)0 };
-			char *env[] = { "HOME=/usr/home", "LOGNAME=home", (char *)0 };
-			char *path = (char*) malloc(sizeof(strlen("/bin/") + strlen(processo->nome) ) ) ;
-			
-			strcpy(path,"/bin/");
-			strcat(path,processo->nome);
-			
-			execve (path, cmd, env);
-
-			qtdProcessos = pEscalonador->pLsProcessos->qtdProcesso;
+			execve();
 		}
 
 	}
@@ -258,77 +220,23 @@ void executaSJF(pEscalonador pEscalonador)
 {
 	int stats ;
 	int qtdProcessos = pEscalonador->pLsProcessos->qtdProcesso ;
-	OrdenaListaTempoDecrescente(pEscalonador->pLsProcessos);
-	while (pEscalonador->pLsProcessos->qtdProcesso!= 0)
+	while (qtdProcessos != 0)
 	{
-		
-		pid_t pId ;
-		
-		
-		if((pId = fork() )!= 0)
+		pProcesso processAtual = retiraProcessoMenorTempo(pEscalonador->pLsProcessos);
+		if (fork() != 0)
 		{
-			int w ;
-			
-			
-			w = waitpid(pId, &stats , 0);
-			
-			
+			//waitpid(-1,&stats,0);
 		}
 		else
 		{
-			pProcesso processo = retiraFimLista(pEscalonador->pLsProcessos);
-			char *cmd[] = { processo->nome , (char *)0 };
-			char *env[] = { "HOME=/usr/home", "LOGNAME=home", (char *)0 };
-			char *path = (char*) malloc(sizeof(strlen("/bin/") + strlen(processo->nome) ) ) ;
-			
-			strcpy(path,"/bin/");
-			strcat(path,processo->nome);
-			
-			printf("tempo exec :%d\n",processo->tempoExecucao);
-			execve (path, cmd, env);
-
-			qtdProcessos = pEscalonador->pLsProcessos->qtdProcesso;
+			execve();
 		}
-
 	}
+	return ;
 }
 void executaPrioridade(pEscalonador pEscalonador)
 {
-	int stats ;
-	int qtdProcessos = pEscalonador->pLsProcessos->qtdProcesso ;
-	OrdenaListaMaiorPrioridade(pEscalonador->pLsProcessos);
-	while (pEscalonador->pLsProcessos->qtdProcesso!= 0)
-	{
-		
-		pid_t pId ;
-		
-		
-		if((pId = fork() )!= 0)
-		{
-			int w ;
-			
-			
-			w = waitpid(pId, &stats , 0);
-			
-			
-		}
-		else
-		{
-			pProcesso processo = retiraFimLista(pEscalonador->pLsProcessos);
-			char *cmd[] = { processo->nome , (char *)0 };
-			char *env[] = { "HOME=/usr/home", "LOGNAME=home", (char *)0 };
-			char *path = (char*) malloc(sizeof(strlen("/bin/") + strlen(processo->nome) ) ) ;
-			
-			strcpy(path,"/bin/");
-			strcat(path,processo->nome);
-			
-			printf("nivel prioridade :%d\n",processo->tempoExecucao);
-			execve (path, cmd, env);
-
-			qtdProcessos = pEscalonador->pLsProcessos->qtdProcesso;
-		}
-
-	}
+	return ;
 }
 void executaRoudRobin(pEscalonador pEscalonador)
 {
@@ -336,38 +244,79 @@ void executaRoudRobin(pEscalonador pEscalonador)
 }
 
 
+pProcesso retiraProcessoMaiorPrioridade(pListaProcessos pListaProcessos)
+{
+	ElemListaProcessos * pElemIteracao = pListaProcessos->pElemInicio;
+	int menorTempo = pElemIteracao->pProcesso->nivelPrioridade ;
+	pProcesso processoRet = NULL ;
 
-void OrdenaListaTempoDecrescente(pListaProcessos pLista){
-	ElemListaProcessos * aux , * aux2;
-	pProcesso k;
-	for(aux=pLista->pElemInicio ; aux!=NULL ; aux =aux->pProx ){
-		
-		for(aux2=aux->pProx; aux2!=NULL ; aux2 = aux2->pProx ){
-			
-			if((aux->pProcesso->tempoExecucao)<(aux2->pProcesso->tempoExecucao)){
-				k=aux->pProcesso;
-				aux->pProcesso=aux2->pProcesso;
-				aux2->pProcesso=k;
-			}
+	// desfaz ligacao das pontas da lista
+	pListaProcessos->pElemInicio->pAnt = NULL ;
+	pListaProcessos->pElemFim->pProx = NULL ;
 
+	//Procura Mais prioritario
+	while (pElemIteracao != NULL )
+	{
+		if(pElemIteracao->pProcesso->nivelPrioridade > pElemIteracao->pProx->pProcesso->nivelPrioridade )
+		{
+			pElemIteracao = pElemIteracao->pProx ;
 		}
 	}
+	//Retira da Lista
+	if(pElemIteracao != NULL)
+	{
+		ElemListaProcessos * pTempAnt = pElemIteracao->pAnt ;
+		ElemListaProcessos * pTempProx = pElemIteracao->pProx ;
 
+
+		pTempAnt->pProx = pTempProx ;
+		pTempProx->pAnt = pTempAnt ;
+
+		pElemIteracao->pAnt = NULL ;
+		pElemIteracao->pProx = NULL ;
+		processoRet = pElemIteracao->pProcesso ;
+		pElemIteracao->pProcesso = NULL ;
+		free(pElemIteracao);
+		pListaProcessos->qtdProcesso --;
+	}
+
+	return processoRet ;
 }
-void OrdenaListaMaiorPrioridade(pListaProcessos pLista){
-	ElemListaProcessos * aux , * aux2;
-	pProcesso k;
-	for(aux=pLista->pElemInicio ; aux!=NULL ; aux =aux->pProx ){
-		
-		for(aux2=aux->pProx; aux2!=NULL ; aux2 = aux2->pProx ){
-			
-			if((aux->pProcesso->nivelPrioridade)<(aux2->pProcesso->nivelPrioridade)){
-				k=aux->pProcesso;
-				aux->pProcesso=aux2->pProcesso;
-				aux2->pProcesso=k;
-			}
+pProcesso retiraProcessoMenorTempo(pListaProcessos pListaProcessos)
+{
+	ElemListaProcessos * pElemIteracao = pListaProcessos->pElemInicio;
+	int menorTempo = pListaProcessos->pElemInicio->pProcesso->tempoExecucao ;
+	pProcesso processoRet = NULL ;
 
+	// desfaz ligacao das pontas da lista
+	pListaProcessos->pElemInicio->pAnt = NULL ;
+	pListaProcessos->pElemFim->pProx = NULL ;
+
+	//Procura Menor Tempo
+	while (pElemIteracao != NULL )
+	{
+		if(pElemIteracao->pProcesso->tempoExecucao > pElemIteracao->pProx->pProcesso->tempoExecucao )
+		{
+			pElemIteracao = pElemIteracao->pProx ;
 		}
 	}
+	//Retira da Lista
+	if(pElemIteracao != NULL)
+	{
+		ElemListaProcessos * pTempAnt = pElemIteracao->pAnt ;
+		ElemListaProcessos * pTempProx = pElemIteracao->pProx ;
 
+
+		pTempAnt->pProx = pTempProx ;
+		pTempProx->pAnt = pTempAnt ;
+
+		pElemIteracao->pAnt = NULL ;
+		pElemIteracao->pProx = NULL ;
+		processoRet = pElemIteracao->pProcesso ;
+		pElemIteracao->pProcesso = NULL ;
+		free(pElemIteracao);
+		pListaProcessos->qtdProcesso --;
+	}
+
+	return processoRet ;
 }
