@@ -86,21 +86,25 @@ void preencheCommandos (FILE * file, pLeitor pleitor, char * nomeDoArquivo)
 {
 	int numeroLinhas = 0;
 	int linhaAtual = 0;
+	char * nomeDoProcesso;
 	char linhaDeComando[50];
 
+	inicializaLeitor(pleitor);
+
 	numeroLinhas = contaNumeroLinhasDoArquivo(file);
-    pleitor->qtdComandos = 0;
 	pleitor->vetComandos = (char **) malloc ( numeroLinhas*sizeof(char*));
 	if (pleitor->vetComandos == NULL)
 	{
 		puts("Erro na alocação de memoria");
 		return;
 	}
-    
+
+	file = fopen (nomeDoArquivo, "rt");
 	while ( fscanf(file,"\n%[^\n]", linhaDeComando) != EOF)
 	{
 		pProcesso pprocesso;
 		pprocesso = criarProcesso();
+		inicializaProcesso(pprocesso);
 
 		pleitor->vetComandos[pleitor->qtdComandos] = (char *) malloc (50*sizeof(char));
 		if (pleitor->vetComandos[pleitor->qtdComandos] == NULL)
@@ -110,21 +114,29 @@ void preencheCommandos (FILE * file, pLeitor pleitor, char * nomeDoArquivo)
 		}
 
 		// caso seja SJF
-		if ( strcmp (nomeDoArquivo, "SJF_comandos.txt")){
-			int idxIgual, tamanhoMili;
+		if ( strcmp (nomeDoArquivo, "SJF_comandos.txt") == 0){
+			int idxIgual;
 			char * pIgual;
-			char * strAux;
+			char strAux[10];
 
 			// preenche a estrutura do processo
 			pIgual = strchr (linhaDeComando, '=');
 			idxIgual = pIgual-linhaDeComando+1;
-			tamanhoMili = strlen(linhaDeComando)-idxIgual;
+			//tamanhoMili = strlen(linhaDeComando)-idxIgual;
 
 			// strAux aponta para o começo da string de milisegundos
-			strAux = &linhaDeComando[idxIgual+1];
+			strcpy (strAux, &linhaDeComando[idxIgual]);
 
 			pprocesso->tempoUCP = strtol( strAux, NULL, 10);
-			strcpy(pprocesso->nome, pegaNomeDoProcesso(linhaDeComando));
+			nomeDoProcesso = pegaNomeDoProcesso(linhaDeComando);
+			pprocesso->nome = (char*) malloc (strlen(nomeDoProcesso)*sizeof(char));
+			if(pprocesso->nome == NULL)
+			{
+				puts("Erro na alocação de memoria");
+				return;
+			}
+
+			strcpy(pprocesso->nome, nomeDoProcesso);
 			pprocesso->PID = linhaAtual;
 
 		}
@@ -138,7 +150,17 @@ void preencheCommandos (FILE * file, pLeitor pleitor, char * nomeDoArquivo)
 				pIgual = strchr (linhaDeComando, '=');
 				idxIgual = pIgual-linhaDeComando+1;
 				pprocesso->nivelPrioridade = atoi(&linhaDeComando[idxIgual+1]);
-				strcpy(pprocesso->nome, pegaNomeDoProcesso(linhaDeComando));
+
+
+				nomeDoProcesso = pegaNomeDoProcesso(linhaDeComando);
+				pprocesso->nome = (char*) malloc (strlen(nomeDoProcesso)*sizeof(char));
+				if(pprocesso->nome == NULL)
+				{
+					puts("Erro na alocação de memoria");
+					return;
+				}
+
+				strcpy(pprocesso->nome, nomeDoProcesso);
 				pprocesso->PID = linhaAtual;
 
 			}
@@ -146,7 +168,14 @@ void preencheCommandos (FILE * file, pLeitor pleitor, char * nomeDoArquivo)
 				if ( strcmp (nomeDoArquivo, "FIFO_comandos.txt") == 0 || 
 					strcmp (nomeDoArquivo, "RoudRobin_comandos.txt") == 0)
 				{
-					char * nomeDoProcesso = &linhaDeComando[5];
+					nomeDoProcesso = &linhaDeComando[5];
+
+					pprocesso->nome = (char*) malloc (strlen(nomeDoProcesso)*sizeof(char));
+					if(pprocesso->nome == NULL)
+					{
+						puts("Erro na alocação de memoria");
+						return;
+					}
 
 					strcpy(pprocesso->nome, nomeDoProcesso);
 					pprocesso->PID = linhaAtual;
@@ -186,12 +215,19 @@ int getQtdComando(pLeitor pleitor)
 
 static void retiraProcessoDaLista (pLeitor pleitor, pProcesso processo)
 {
-	pProcesso aux, anterior;
-	
+	pProcesso aux, anterior = NULL;
+
 	/* Leva aux para o processo a ser excluido o anterior para o processo anterior a aux */
 	for (aux = pleitor->lisProcesso; aux != processo; anterior = aux, aux = aux->proximo);
 
-	anterior->proximo = aux->proximo;
+	if (anterior != NULL)
+	{
+		anterior->proximo = aux->proximo;
+		aux->proximo = NULL;
+		return;
+	}
+
+	pleitor->lisProcesso = aux->proximo;
 	aux->proximo = NULL;
 
 }
@@ -212,7 +248,7 @@ static char * pegaNomeDoProcesso (char* string)
 
 	char * resultado, * nome, * segundoEspaco;
 	resultado = &string[5];
-	
+
 	segundoEspaco = strchr (resultado, ' ');
 	if (segundoEspaco == NULL)
 	{
@@ -220,13 +256,13 @@ static char * pegaNomeDoProcesso (char* string)
 
 		strcpy (nome, resultado);
 		return nome;
-	
+
 	}else 
 	{
 		int idxSegundoEspaco;
 		int i;
 		idxSegundoEspaco = segundoEspaco-resultado+1;
-		
+
 		nome = (char*) malloc ((idxSegundoEspaco+1)*sizeof(char));
 		if (nome == NULL)
 			return NULL;
@@ -245,13 +281,21 @@ static char * pegaNomeDoProcesso (char* string)
 static void adicionaProcessoNaLista (pLeitor pleitor, pProcesso pprocesso)
 {
 	pProcesso aux = pleitor->lisProcesso;
-	while (aux != NULL)
+
+	if (aux == NULL)
 	{
-		if (aux->proximo == NULL)
+		pleitor->lisProcesso = pprocesso;
+	}
+	else
+	{
+		while (aux != NULL)
 		{
-			aux->proximo = pprocesso;
-			break;
+			if (aux->proximo == NULL)
+			{
+				aux->proximo = pprocesso;
+				break;
+			}
+			aux = aux->proximo;
 		}
-		aux = aux->proximo;
 	}
 }
