@@ -18,12 +18,13 @@ int main(){
 	//printf("oi1");
 
 	FILE * entradaFifo = fopen("FIFO_comandos.txt","rt");
-	/*FILE * entradaSJF = fopen("SJF_comandos.txt","rt");
+	FILE * entradaSJF = fopen("SJF_comandos.txt","rt");
 	FILE * entradaPrioridades = fopen("Prioridades_comandos.txt","rt");
 	FILE * entradaRoudRobin = fopen("RoudRobin_comandos.txt","rt");
-	FILE * saida = fopen("E:\\Documento\\saida.txt","rt" ); */
+	/*FILE * saida = fopen("E:\\Documento\\saida.txt","rt" ); */
 
-	preencheCommandos(entradaFifo,leitorFifo,"FIFO_comandos.txt");
+	preencheCommandos(entradaRoudRobin,leitorFifo,"RoudRobin_comandos.txt");
+
 	/*preencheCommandos(entradaSJF,leitorSJF,"SJF_comandos.txt");
 	preencheCommandos(entradaPrioridades,leitorPrioridades,"Prioridades_comandos.txt");
 	preencheCommandos(entradaRoudRobin,leitorRoudRobin,"RoudRobin_comandos.txt");
