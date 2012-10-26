@@ -3,18 +3,18 @@
 #include <string.h>
 #include "escalonador.h"
 #include <sys/types.h>
-#include <sys/wait.h>
+/*#include <sys/wait.h>
 #include <unistd.h>
 #include <sys/ipc.h> 
-#include <sys/shm.h> 
+#include <sys/shm.h>*/ 
 #include <sys/stat.h>
 
 #define TRUE 1
 #define FALSE 0
 
 
-//#define fork() printf("fork;")
-//#define execve() printf("execve")
+#define fork() printf("fork;")
+#define execve() printf("execve")
 
 
 /*Esturturas declaradas e encapsuladas no modulo*/
@@ -76,7 +76,7 @@ static pProcesso retiraProcessoMenorTempo(pListaProcessos pListaProcessos);
 static pProcesso retiraProcessoMaiorPrioridade(pListaProcessos pListaProcessos);
 static void OrdenaListaTempoDecrescente(pListaProcessos pLista);
 static void OrdenaListaMaiorPrioridade(pListaProcessos pLista);
-
+static void circularizaLista(pListaProcessos pLista);
 
 
 
@@ -145,7 +145,7 @@ void executaEscalonamento(pEscalonador pEscalonador)
 		executaFifo(pEscalonador);
 		break;
 	case RoudRobin:
-		executaFifo(pEscalonador);
+		executaRoudRobin(pEscalonador);
 		break;
 	default:
 		printf("Politica errada. Programa sera finalizado.");
@@ -158,9 +158,10 @@ void executaEscalonamento(pEscalonador pEscalonador)
 void inicializaLista(pEscalonador pEscalonador)
 {
 	int segmento;
-	segmento= shmget(IPC_PRIVATE,sizeof(struct _lsProcessos), IPC_CREAT|IPC_EXCL|S_IRUSR|S_IWUSR);	 
+	/*segmento= shmget(IPC_PRIVATE,sizeof(struct _lsProcessos), IPC_CREAT|IPC_EXCL|S_IRUSR|S_IWUSR);	 
 	pEscalonador->pLsProcessos =(struct _lsProcessos*) shmat(segmento,0,0);
-	//pEscalonador->pLsProcessos = (struct _lsProcessos *) malloc(sizeof(struct _lsProcessos)) ;
+	*/
+	pEscalonador->pLsProcessos = (struct _lsProcessos *) malloc(sizeof(struct _lsProcessos)) ;
 	pEscalonador->pLsProcessos->pElemCorr = NULL ;
 	pEscalonador->pLsProcessos->pElemFim = NULL ;
 	pEscalonador->pLsProcessos->pElemInicio = NULL ;
@@ -224,7 +225,7 @@ void executaFifo(pEscalonador pEscalonador)
 	while (pEscalonador->pLsProcessos->qtdProcesso!= 0)
 	{
 		
-		pid_t pId ;
+		int pId ;
 		printf("before fork\n");
 		if((pId = fork() )!= 0)
 		{
@@ -232,7 +233,7 @@ void executaFifo(pEscalonador pEscalonador)
 			printf("before wait\n");
 			printf("PID: %d\n",pId);
 			
-			w = waitpid(pId, &stats , 0);
+			//w = waitpid(pId, &stats , 0);
 			
 			printf("after wait %d\n",w);
 		}
@@ -262,7 +263,7 @@ void executaSJF(pEscalonador pEscalonador)
 	while (pEscalonador->pLsProcessos->qtdProcesso!= 0)
 	{
 		
-		pid_t pId ;
+		int pId ;
 		
 		
 		if((pId = fork() )!= 0)
@@ -270,7 +271,7 @@ void executaSJF(pEscalonador pEscalonador)
 			int w ;
 			
 			
-			w = waitpid(pId, &stats , 0);
+			//w = waitpid(pId, &stats , 0);
 			
 			
 		}
@@ -300,7 +301,7 @@ void executaPrioridade(pEscalonador pEscalonador)
 	while (pEscalonador->pLsProcessos->qtdProcesso!= 0)
 	{
 		
-		pid_t pId ;
+	/*	pid_t pId ;
 		
 		
 		if((pId = fork() )!= 0)
@@ -326,16 +327,52 @@ void executaPrioridade(pEscalonador pEscalonador)
 			execve (path, cmd, env);
 
 			qtdProcessos = pEscalonador->pLsProcessos->qtdProcesso;
-		}
+		}*/
 
 	}
 }
 void executaRoudRobin(pEscalonador pEscalonador)
 {
+	int stats ;
+	printf("oi");
+	//OrdenaListaMaiorPrioridade(pEscalonador->pLsProcessos);
+	while (pEscalonador->pLsProcessos->qtdProcesso!= 0)
+	{
+		
+		/*int pid = fork();
+		printf("antes fork");
+		if(pid)
+		{
+			while(TRUE)
+			{
+				printf("antes sleep");
+				sleep(pEscalonador->timeSlice);
+
+				kill(pid,SIGSTOP); 
+
+				sleep(pEscalonador->timeSlice);
+
+				kill(pid,SIGCONT); 
+			}
+		}
+		else
+		{
+			int ref = time(NULL);
+
+			while(TRUE)
+			{
+				pProcesso pProcesso = retiraFimLista(pEscalonador->pLsProcessos);
+
+				int tm = time(NULL);
+
+				printf("%d PID:%d  Num:%d ", tm-ref,getpid() , pProcesso->nivelPrioridade);
+				sleep(1);
+			}
+		}*/
+
+	}
 	return ;
 }
-
-
 
 void OrdenaListaTempoDecrescente(pListaProcessos pLista){
 	ElemListaProcessos * aux , * aux2;
@@ -370,4 +407,10 @@ void OrdenaListaMaiorPrioridade(pListaProcessos pLista){
 		}
 	}
 
+}
+
+void circularizaLista(pListaProcessos pLista)
+{
+	pLista->pElemFim->pProx = pLista->pElemInicio;
+	pLista->pElemInicio->pAnt = pLista->pElemFim;
 }

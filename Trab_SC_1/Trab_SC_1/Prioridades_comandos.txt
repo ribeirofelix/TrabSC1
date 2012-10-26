@@ -1,5 +1,3 @@
-exec alfa tempoexec=1000
-exec beta tempoexec=7000
-exec charlie tempoexec=7000
-exec delta tempoexec=3000
-exec echo temposexec=2000
+exec ls tempoexec=1000
+exec cat tempoexec=7000
+exec more tempoexec=7000
