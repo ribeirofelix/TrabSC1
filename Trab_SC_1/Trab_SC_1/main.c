@@ -15,10 +15,8 @@ int main(){
 	pEscalonador pEscalonadorRoundRobin = criaEscalonador(RoudRobin,5);
 	pProcesso pProcessoAInserir  ;
 	int comando = 5 ;
-	//printf("oi1");
-
-
 	FILE * entradaFifo = fopen("E:\\FIFO_comandos.txt","r");
+	FILE * entradaRoudRobin = fopen("RoudRobin_comandos.txt","rt");
 	if(entradaFifo == NULL)
 		exit(1);
 	/*FILE * entradaSJF = fopen("SJF_comandos.txt","rt");
@@ -27,7 +25,7 @@ int main(){
 	FILE * entradaSJF = fopen("SJF_comandos.txt","rt");
 
 	FILE * entradaPrioridades = fopen("Prioridades_comandos.txt","rt");*/
-	FILE * entradaRoudRobin = fopen("RoudRobin_comandos.txt","rt");
+	
 	/*FILE * saida = fopen("E:\\Documento\\saida.txt","rt" ); */
 
 	preencheCommandos(entradaRoudRobin,leitorFifo,"RoudRobin_comandos.txt");

@@ -33,8 +33,11 @@ pProcesso criarProcesso ()
 pLeitor criarLeitor()
 {
 	pLeitor leitorRet = (pLeitor) malloc(sizeof(Leitor));
-	if(leitorRet != NULL)
+	if(leitorRet != NULL){
+		inicializaLeitor(leitorRet);
 		return leitorRet;
+	}
+		
 
 	return NULL;
 }
@@ -51,13 +54,13 @@ void inicializaProcesso (pProcesso processo)
 	processo->proximo = NULL;
 }
 
-void inicializaLeitor(pLeitor pleitor)
+void inicializaLeitor(pLeitor  pleitor)
 {
-	pleitor->qtdComandos = 0;
-	pleitor->vetComandos = NULL;
-	pleitor->comandoAtual = 0 ;
-	pleitor->lisProcesso = NULL;
-	pleitor->proximoProcesso = NULL;
+	(pleitor)->qtdComandos = 0;
+	(pleitor)->vetComandos = NULL;
+	(pleitor)->comandoAtual = 0 ;
+	(pleitor)->lisProcesso = NULL;
+	(pleitor)->proximoProcesso = NULL;
 	return;
 }
 
@@ -89,9 +92,15 @@ void preencheCommandos (FILE * file, pLeitor pleitor, char * nomeDoArquivo)
 	char * nomeDoProcesso;
 	char linhaDeComando[50];
 
-	inicializaLeitor(pleitor);
+//	int numeroLinhas = 0;
 
-	numeroLinhas = contaNumeroLinhasDoArquivo(file);
+	while ( fscanf(file,"\n%[^\n]") != EOF)
+		numeroLinhas++;
+
+	fclose(file);
+
+	
+	//numeroLinhas = contaNumeroLinhasDoArquivo(file);
 	pleitor->vetComandos = (char **) malloc ( numeroLinhas*sizeof(char*));
 	if (pleitor->vetComandos == NULL)
 	{
@@ -213,7 +222,7 @@ int getQtdComando(pLeitor pleitor)
 	return pleitor->qtdComandos;
 }
 
-static void retiraProcessoDaLista (pLeitor pleitor, pProcesso processo)
+ void retiraProcessoDaLista (pLeitor pleitor, pProcesso processo)
 {
 	pProcesso aux, anterior = NULL;
 
@@ -232,7 +241,7 @@ static void retiraProcessoDaLista (pLeitor pleitor, pProcesso processo)
 
 }
 
-static int contaNumeroLinhasDoArquivo (FILE* file)
+ int contaNumeroLinhasDoArquivo (FILE* file)
 {
 	int numeroLinhas = 0;
 	while ( fscanf(file,"\n%[^\n]") != EOF)
@@ -243,7 +252,7 @@ static int contaNumeroLinhasDoArquivo (FILE* file)
 	return numeroLinhas;
 }
 
-static char * pegaNomeDoProcesso (char* string)
+ char * pegaNomeDoProcesso (char* string)
 {
 
 	char * resultado, * nome, * segundoEspaco;
@@ -278,7 +287,7 @@ static char * pegaNomeDoProcesso (char* string)
 	}
 }
 
-static void adicionaProcessoNaLista (pLeitor pleitor, pProcesso pprocesso)
+ void adicionaProcessoNaLista (pLeitor pleitor, pProcesso pprocesso)
 {
 	pProcesso aux = pleitor->lisProcesso;
 
