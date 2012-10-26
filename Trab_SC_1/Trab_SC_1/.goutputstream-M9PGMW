@@ -1,4 +1,4 @@
 exec ls
-exec cat
-exec ls
 exec more
+exec ls
+exec cat
