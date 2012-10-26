@@ -5,24 +5,12 @@
 
 #include "escalonador.h"
 
-
 /* Prototipos de funções encapsuladas no modulo*/
 static int contaNumeroLinhasDoArquivo (FILE* file);
 static char * pegaNomeDoProcesso (char* string);
 static void adicionaProcessoNaLista (pLeitor pleitor, pProcesso pprocesso);
 static void retiraProcessoDaLista (pLeitor pleitor, pProcesso processo);
 
-
-typedef struct _processo{
-	char* nome;
-	int PID;
-	int tempoUCP;
-	int nivelPrioridade;
-	int tempoEs;
-	int tempoExecucao;
-	int tempoEspera;
-	pProcesso proximo;
-} Processo;
 
 typedef struct _leitor{
 	int qtdComandos;
@@ -63,13 +51,13 @@ void inicializaProcesso (pProcesso processo)
 	processo->proximo = NULL;
 }
 
-void inicializaLeitor(pLeitor pLeitor)
+void inicializaLeitor(pLeitor pleitor)
 {
-	pLeitor->qtdComandos = 0;
-	pLeitor->vetComandos = NULL;
-	pLeitor->comandoAtual = 0 ;
-	pLeitor->lisProcesso = NULL;
-	pLeitor->proximoProcesso = NULL;
+	pleitor->qtdComandos = 0;
+	pleitor->vetComandos = NULL;
+	pleitor->comandoAtual = 0 ;
+	pleitor->lisProcesso = NULL;
+	pleitor->proximoProcesso = NULL;
 	return;
 }
 
@@ -99,19 +87,16 @@ void preencheCommandos (FILE * file, pLeitor pleitor, char * nomeDoArquivo)
 	int numeroLinhas = 0;
 	int linhaAtual = 0;
 	char linhaDeComando[50];
-	
+
 	numeroLinhas = contaNumeroLinhasDoArquivo(file);
-	
-	pleitor->qtdComandos = 0;
+    pleitor->qtdComandos = 0;
 	pleitor->vetComandos = (char **) malloc ( numeroLinhas*sizeof(char*));
 	if (pleitor->vetComandos == NULL)
 	{
 		puts("Erro na alocação de memoria");
 		return;
 	}
-
-	file = fopen (nomeDoArquivo, "r");
-
+    
 	while ( fscanf(file,"\n%[^\n]", linhaDeComando) != EOF)
 	{
 		pProcesso pprocesso;
