@@ -85,6 +85,12 @@
     <ClCompile Include="intepretador.c" />
     <ClCompile Include="main.c" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="FIFO_comandos.txt" />
+    <Text Include="Prioridades_comandos.txt" />
+    <Text Include="RoudRobin_comandos.txt" />
+    <Text Include="SJF_comandos.txt" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
