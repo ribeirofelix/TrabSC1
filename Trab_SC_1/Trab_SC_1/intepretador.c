@@ -10,6 +10,7 @@
 static int contaNumeroLinhasDoArquivo (FILE* file);
 static char * pegaNomeDoProcesso (char* string);
 static void adicionaProcessoNaLista (pLeitor pleitor, pProcesso pprocesso);
+static void retiraProcessoDaLista (pLeitor pleitor, pProcesso processo);
 
 
 typedef struct _processo{
@@ -95,11 +96,13 @@ pProcesso getProcessos (pLeitor pleitor)
 //assumo que o leitor está criado e inicializado e o arquivo não é null e que o file é igual ao nome do arquivo
 void preencheCommandos (FILE * file, pLeitor pleitor, char * nomeDoArquivo)
 {
-	int numeroLinhas;
+	int numeroLinhas = 0;
 	int linhaAtual = 0;
-	char * linhaDeComando;
-
+	char linhaDeComando[50];
+	
 	numeroLinhas = contaNumeroLinhasDoArquivo(file);
+	
+	pleitor->qtdComandos = 0;
 	pleitor->vetComandos = (char **) malloc ( numeroLinhas*sizeof(char*));
 	if (pleitor->vetComandos == NULL)
 	{
@@ -107,12 +110,14 @@ void preencheCommandos (FILE * file, pLeitor pleitor, char * nomeDoArquivo)
 		return;
 	}
 
-	while( fscanf(file,"%[^\n]",linhaDeComando) != EOF)
+	file = fopen (nomeDoArquivo, "r");
+
+	while ( fscanf(file,"\n%[^\n]", linhaDeComando) != EOF)
 	{
 		pProcesso pprocesso;
 		pprocesso = criarProcesso();
 
-		pleitor->vetComandos[pleitor->qtdComandos] = (char *) malloc (strlen(linhaDeComando)*sizeof(char));
+		pleitor->vetComandos[pleitor->qtdComandos] = (char *) malloc (50*sizeof(char));
 		if (pleitor->vetComandos[pleitor->qtdComandos] == NULL)
 		{
 			puts("Erro na alocação de memoria");
@@ -177,12 +182,14 @@ pProcesso interarComando (pLeitor pleitor)
 	int i;
 	pProcesso aux;
 
-	pleitor->comandoAtual++;
-
 	if (pleitor->comandoAtual > pleitor->qtdComandos)
 		return NULL;
 
-	for (aux = pleitor->lisProcesso, i = 0; i < pleitor->comandoAtual;  aux = aux->proximo, i++);
+	for (aux = pleitor->lisProcesso, i = 0; i < pleitor->comandoAtual-1;  aux = aux->proximo, i++);
+
+	retiraProcessoDaLista (pleitor, aux);
+
+	pleitor->comandoAtual++;
 
 	return aux;
 }
@@ -192,40 +199,62 @@ int getQtdComando(pLeitor pleitor)
 	return pleitor->qtdComandos;
 }
 
+static void retiraProcessoDaLista (pLeitor pleitor, pProcesso processo)
+{
+	pProcesso aux, anterior;
+	
+	/* Leva aux para o processo a ser excluido o anterior para o processo anterior a aux */
+	for (aux = pleitor->lisProcesso; aux != processo; anterior = aux, aux = aux->proximo);
+
+	anterior->proximo = aux->proximo;
+	aux->proximo = NULL;
+
+}
+
 static int contaNumeroLinhasDoArquivo (FILE* file)
 {
 	int numeroLinhas = 0;
-	while ( fscanf(file,"%s") != EOF)
+	while ( fscanf(file,"\n%[^\n]") != EOF)
 		numeroLinhas++;
+
+	fclose(file);
 
 	return numeroLinhas;
 }
 
 static char * pegaNomeDoProcesso (char* string)
 {
-	char* resultado;
-	int i, j, segundoEspaco;
 
-	for (i = 5; ; i++)
+	char * resultado, * nome, * segundoEspaco;
+	resultado = &string[5];
+	
+	segundoEspaco = strchr (resultado, ' ');
+	if (segundoEspaco == NULL)
 	{
-		if (string[i] == ' ')
+		nome = (char *) malloc (strlen(resultado)*sizeof(char));
+
+		strcpy (nome, resultado);
+		return nome;
+	
+	}else 
+	{
+		int idxSegundoEspaco;
+		int i;
+		idxSegundoEspaco = segundoEspaco-resultado+1;
+		
+		nome = (char*) malloc ((idxSegundoEspaco+1)*sizeof(char));
+		if (nome == NULL)
+			return NULL;
+
+
+		for (i = 0; i < idxSegundoEspaco; i++)
 		{
-			segundoEspaco = i; 
-			break;
+			nome[i] = resultado [i];
 		}
+		nome[i] = '\0';
+
+		return nome;
 	}
-
-	resultado = (char*) malloc ((segundoEspaco-3)*sizeof(char));
-	if (resultado == NULL)
-		return NULL;
-
-	for (i = 5, j = 0; i < segundoEspaco; i++, j++)
-	{
-		resultado[j] = string[i];
-	}
-	resultado[j+1] = '\0';
-
-	return resultado;
 }
 
 static void adicionaProcessoNaLista (pLeitor pleitor, pProcesso pprocesso)

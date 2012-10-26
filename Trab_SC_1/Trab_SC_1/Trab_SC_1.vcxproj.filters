@@ -33,4 +33,18 @@
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="FIFO_comandos.txt">
+      <Filter>Source Files</Filter>
+    </Text>
+    <Text Include="Prioridades_comandos.txt">
+      <Filter>Source Files</Filter>
+    </Text>
+    <Text Include="RoudRobin_comandos.txt">
+      <Filter>Source Files</Filter>
+    </Text>
+    <Text Include="SJF_comandos.txt">
+      <Filter>Source Files</Filter>
+    </Text>
+  </ItemGroup>
 </Project>
