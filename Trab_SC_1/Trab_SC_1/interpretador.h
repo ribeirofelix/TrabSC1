@@ -1,6 +1,17 @@
 typedef struct _leitor *  pLeitor ;
 typedef struct _processo * pProcesso ;
 
+typedef struct _processo{
+	char* nome;
+	int PID;
+	int tempoUCP;
+	int nivelPrioridade;
+	int tempoEs;
+	int tempoExecucao;
+	int tempoEspera;
+	pProcesso proximo;
+} Processo;
+
 pLeitor criarLeitor();
 
 void inicializaLeitor(pLeitor pLeitor);
