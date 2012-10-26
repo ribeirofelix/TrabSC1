@@ -15,6 +15,6 @@ int getComandoAtual(pLeitor pleitor);
 
 int getQtdComando(pLeitor pleitor);
 
-void preencheCommandos (FILE * file, pLeitor pLeitor);
+void preencheCommandos (FILE * file, pLeitor pLeitor, char* nomeArquivo);
 
 pProcesso interarComando (pLeitor pleitor);

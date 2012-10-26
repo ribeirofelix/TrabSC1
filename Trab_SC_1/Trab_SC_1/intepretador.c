@@ -96,11 +96,13 @@ pProcesso getProcessos (pLeitor pleitor)
 //assumo que o leitor está criado e inicializado e o arquivo não é null e que o file é igual ao nome do arquivo
 void preencheCommandos (FILE * file, pLeitor pleitor, char * nomeDoArquivo)
 {
-	int numeroLinhas;
+	int numeroLinhas = 0;
 	int linhaAtual = 0;
-	char * linhaDeComando;
-
+	char linhaDeComando[50];
+	
 	numeroLinhas = contaNumeroLinhasDoArquivo(file);
+	
+	pleitor->qtdComandos = 0;
 	pleitor->vetComandos = (char **) malloc ( numeroLinhas*sizeof(char*));
 	if (pleitor->vetComandos == NULL)
 	{
@@ -108,12 +110,14 @@ void preencheCommandos (FILE * file, pLeitor pleitor, char * nomeDoArquivo)
 		return;
 	}
 
-	while( fscanf(file,"%[^\n]",linhaDeComando) != EOF)
+	file = fopen (nomeDoArquivo, "r");
+
+	while ( fscanf(file,"\n%[^\n]", linhaDeComando) != EOF)
 	{
 		pProcesso pprocesso;
 		pprocesso = criarProcesso();
 
-		pleitor->vetComandos[pleitor->qtdComandos] = (char *) malloc (strlen(linhaDeComando)*sizeof(char));
+		pleitor->vetComandos[pleitor->qtdComandos] = (char *) malloc (50*sizeof(char));
 		if (pleitor->vetComandos[pleitor->qtdComandos] == NULL)
 		{
 			puts("Erro na alocação de memoria");
@@ -210,8 +214,10 @@ static void retiraProcessoDaLista (pLeitor pleitor, pProcesso processo)
 static int contaNumeroLinhasDoArquivo (FILE* file)
 {
 	int numeroLinhas = 0;
-	while ( fscanf(file,"%s") != EOF)
+	while ( fscanf(file,"\n%[^\n]") != EOF)
 		numeroLinhas++;
+
+	fclose(file);
 
 	return numeroLinhas;
 }
@@ -225,6 +231,8 @@ static char * pegaNomeDoProcesso (char* string)
 	segundoEspaco = strchr (resultado, ' ');
 	if (segundoEspaco == NULL)
 	{
+		nome = (char *) malloc (strlen(resultado)*sizeof(char));
+
 		strcpy (nome, resultado);
 		return nome;
 	
