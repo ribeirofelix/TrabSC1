@@ -155,10 +155,10 @@ void executaEscalonamento(pEscalonador pEscalonador)
 void inicializaLista(pEscalonador pEscalonador)
 {
 	int segmento;
-	/*segmento= shmget(IPC_PRIVATE,sizeof(struct _lsProcessos), IPC_CREAT|IPC_EXCL|S_IRUSR|S_IWUSR);	 
+	segmento= shmget(IPC_PRIVATE,sizeof(struct _lsProcessos), IPC_CREAT|IPC_EXCL|S_IRUSR|S_IWUSR);	 
 	pEscalonador->pLsProcessos =(struct _lsProcessos*) shmat(segmento,0,0);
-	*/
-	pEscalonador->pLsProcessos = (struct _lsProcessos *) malloc(sizeof(struct _lsProcessos)) ;
+	
+	//pEscalonador->pLsProcessos = (struct _lsProcessos *) malloc(sizeof(struct _lsProcessos)) ;
 	pEscalonador->pLsProcessos->pElemCorr = NULL ;
 	pEscalonador->pLsProcessos->pElemFim = NULL ;
 	pEscalonador->pLsProcessos->pElemInicio = NULL ;
